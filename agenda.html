@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda de Atividades</title>
+    <style>
+        /* Estilos para deixar a tabela bonita */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Agenda de Atividades do SIGAA</h2>
+
+    <!-- Formulário para Upload do arquivo CSV -->
+    <label for="fileInput">Carregar Arquivo CSV</label>
+    <input type="file" id="fileInput" accept=".csv">
+    <br><br>
+
+    <table class="agenda">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Hora</th>
+                <th>Atividade</th>
+            </tr>
+        </thead>
+        <tbody id="agendaBody">
+            <!-- As atividades serão inseridas aqui -->
+        </tbody>
+    </table>
+
+    <!-- Script para Manipulação do CSV -->
+    <script>
+        // Função para ler o arquivo CSV e exibir na tabela
+        function lerArquivoCSV(arquivo) {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const conteudo = e.target.result;
+                const linhas = conteudo.split("\n");
+                const atividades = [];
+
+                // Pular o cabeçalho
+                for (let i = 1; i < linhas.length; i++) {
+                    const dados = linhas[i].split(",");
+                    if (dados.length === 3) {
+                        let [data, hora, atividade] = dados;
+
+                        // Verificar se a data contém a quantidade de dias restantes
+                        if (data.includes('(')) {
+                            // Remover a quantidade de dias restantes e extrair apenas a data
+                            data = data.split(" ")[0];
+                        }
+
+                        // Se a atividade tem hora, extrair a hora (caso contrário, será "Dia todo")
+                        if (hora.includes(':')) {
+                            // Exemplo: 17/12/2024 17:00 (9 dias) -> Extrair apenas a data e hora
+                            hora = hora.split(" ")[0];  // Ex: "17:00"
+                        } else {
+                            // Se não houver hora, colocar como "Dia todo"
+                            hora = "Dia todo";
+                        }
+
+                        atividades.push({ data: data.trim(), hora: hora.trim(), atividade: atividade.trim() });
+                    }
+                }
+
+                // Exibir as atividades na tabela
+                exibirAtividades(atividades);
+            };
+
+            reader.readAsText(arquivo);
+        }
+
+        // Função para exibir as atividades na tabela
+        function exibirAtividades(atividades) {
+            const tbody = document.getElementById("agendaBody");
+
+            // Limpar a tabela antes de adicionar novas atividades
+            tbody.innerHTML = "";
+
+            atividades.forEach(atividade => {
+                const tr = document.createElement("tr");
+
+                tr.innerHTML = `
+                    <td>${atividade.data}</td>
+                    <td>${atividade.hora}</td>
+                    <td>${atividade.atividade}</td>
+                `;
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Monitorar a mudança no input de arquivo
+        document.getElementById("fileInput").addEventListener("change", function(event) {
+            const arquivo = event.target.files[0];
+
+            if (arquivo) {
+                lerArquivoCSV(arquivo);
+            }
+        });
+    </script>
+
+</body>
+</html>
